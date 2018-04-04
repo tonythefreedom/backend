@@ -74,8 +74,11 @@ def return_avg_frequency(word_list):
         similar_word_frequency.append(int(avg))
     return(similar_word_frequency)
 
-result = "no reasult"
+######################################################################################
+# 리퀘스트 id 로 파라미터 보내기
+######################################################################################
 
+result = "no reasult"
 def index(request):
     if request.GET["id"] == "nlp1" :
         out_list = []
