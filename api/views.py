@@ -10,12 +10,12 @@ test_str = 'burgerking'
 test_str = test_str.lower()
 
 #local path
-#MODEL_PATH = "/Users/mac/model/gensim_model_skip_gram"
-#TABLE_PATH = "/Users/mac/model/word_count_table.json"
+MODEL_PATH = "/Users/mac/model/gensim_model_skip_gram"
+TABLE_PATH = "/Users/mac/model/word_count_table.json"
 
 #Server path
-MODEL_PATH = "/usr/local/etc/django/model/gensim_model_skip_gram"
-TABLE_PATH = "/usr/local/etc/django/model/word_count_table.json"
+#MODEL_PATH = "/usr/local/etc/django/model/gensim_model_skip_gram"
+#TABLE_PATH = "/usr/local/etc/django/model/word_count_table.json"
 
 model = Word2Vec.load(MODEL_PATH)     #yelp review skip_gram으로 돌린 모델#
 with open(TABLE_PATH) as f:
@@ -84,21 +84,23 @@ def return_avg_frequency(word_list):
 # 리퀘스트 id 로 파라미터 보내기
 ######################################################################################
 
-result = "no reasult"
+result = "{}"
 def index(request):
     if request.GET["id"] == "nlp1" :
+        test_str = request.GET["keyword"]
         out_list = []
-        kb = return_similar_word_list(test_str)
-        dic_name = return_similar_word_name(kb)
-        dic_frequency = return_avg_frequency(kb)
 
-        for i in range(len(dic_name)):
-            out_dict = {}
-            out_dict['name'] = dic_name[i]
-            out_dict['frequency'] = dic_frequency[i]
-            out_list.append(out_dict)
+        if return_similar_word_list(test_str) != []:
+            kb = return_similar_word_list(test_str)
+            dic_name = return_similar_word_name(kb)
+            dic_frequency = return_avg_frequency(kb)
+            for i in range(len(dic_name)):
+                out_dict = {}
+                out_dict['name'] = dic_name[i]
+                out_dict['frequency'] = dic_frequency[i]
+                out_list.append(out_dict)
+            result = json.dumps(out_list)
 
-        result = json.dumps(out_list)
     elif request.GET["id"] == "nlp2" :
-        result = ""
+        result = "{}"
     return HttpResponse(result)
