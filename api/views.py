@@ -5,7 +5,13 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from gensim.models.word2vec import Word2Vec
 import json
+import pandas
+from nltk.corpus import stopwords
+import csv
 
+#######################################################################################################
+#   API1 Function
+#######################################################################################################
 test_str = 'burgerking'
 test_str = test_str.lower()
 
@@ -15,20 +21,22 @@ test_str = test_str.lower()
 
 #MODEL_PATH = "/Users/kyubum/PycharmProjects/simility/kb_test/model/gensim_model_skip_gram"
 #TABLE_PATH = "/Users/kyubum/PycharmProjects/simility/kb_test/word_count_table.json"
-
-
+#WM_PATH = "/Users/kyubum/PycharmProjects/simility/kb_test/weight_df.csv"
 
 #Server path
 MODEL_PATH = "/usr/local/etc/django/model/gensim_model_skip_gram"
 TABLE_PATH = "/usr/local/etc/django/model/word_count_table.json"
+WM_PATH = "/usr/local/etc/django/model/weight_df.csv"
+
+
 
 model = Word2Vec.load(MODEL_PATH)     #yelp review skip_gram으로 돌린 모델#
 with open(TABLE_PATH) as f:
     term_frequencys = f.readlines()
 
-######################################################################################
+###############################
 # return frequency function
-######################################################################################
+###############################
 term_frequency_list = [json.loads(term_frequency, encoding = 'utf-8') for term_frequency in term_frequencys]
 term_frequency_dict = term_frequency_list[0]
 
@@ -44,9 +52,9 @@ def return_frequency(word):
 #print(return_frequency('nicsdfe'))
 
 
-######################################################################################
+#################################
 # input word -> similar word list return function(output : 2차원 리스트)
-######################################################################################
+#################################
 def return_similar_word_list(word):
     similar_output_list = []
     xx = model.most_similar(positive = [str(word)], topn = 40)
@@ -71,9 +79,9 @@ def return_similar_word_name(kb_list):
 
 
 
-######################################################################################
+###################################################################
 # similar_word_list -> average frequency function (output: 1차원 리스트)
-######################################################################################
+###################################################################
 def return_avg_frequency(word_list):
     similar_word_frequency = []
     for i in word_list:
@@ -84,6 +92,89 @@ def return_avg_frequency(word_list):
         avg = sum(frequency_tem_list) / len(frequency_tem_list)
         similar_word_frequency.append(int(avg))
     return(similar_word_frequency)
+
+
+#######################################################################################################
+#   API2 Function
+#######################################################################################################
+stop_words = set(stopwords.words('english'))
+##########################################################################
+# Load Weight_matrix  (weight_matrix는 API2_create_WM.py 코드에서 만들 수 있음.)
+##########################################################################
+weight_final_df = pandas.read_csv(WM_PATH, encoding = 'utf-8')
+weight_final_df.index = ['food','service','ambience','value']
+weight_final_df = weight_final_df.drop('Unnamed: 0',1)
+
+
+##########################################################
+# return taste, price, value, ambience score function
+##########################################################
+def API2_function(input_list):
+    menu_name = input_list
+    food_score_list = []
+    service_score_list = []
+    ambience_score_list = []
+    value_score_list =[]
+
+    for i in menu_name:
+        test_str = i.lower()
+        try:
+            # create TDM(term-document matrix)
+            TDM_col_list = list(weight_final_df.columns.values)
+            TDM_df = pandas.DataFrame(columns = TDM_col_list)
+            TDM_df.loc[0] = 0 * len(TDM_col_list)
+
+            input_str = test_str
+            input_str = input_str.lower()
+            input_str = input_str.replace(".","")
+            input_str = input_str.replace("!","")
+            input_str_list = input_str.split(' ')
+
+            for i in input_str_list:
+                if not i in stop_words:
+                    try:
+                        TDM_df[str(i)][0] = 1
+                    except KeyError:
+                        continue
+                else:
+                    continue
+            TDM_df = TDM_df.T
+
+
+            # 가중치 행렬, TDM 내적하기.(weight_matrix * TDM_df)
+            score = weight_final_df.dot(TDM_df)
+            score_list = []
+            score_list.append(('food',float(score[0][0])))
+            score_list.append(('service',float(score[0][1])))
+            score_list.append(('ambience',float(score[0][2])))
+            score_list.append(('value',float(score[0][3])))
+
+            food_score_list.append(round(score_list[0][1], 4))
+            service_score_list.append(round(score_list[1][1],4)) 
+            ambience_score_list.append(round(score_list[2][1],4))
+            value_score_list.append(round(score_list[3][1],4))
+
+        except KeyError:
+            food_score_list.append(0)
+            service_score_list.append(0) 
+            ambience_score_list.append(0)
+            value_score_list.append(0) 
+            continue
+
+        
+    menu_name_list = menu_name
+    out_list = []
+    for i in range(len(menu_name_list)):
+        out_dict = {}
+        out_dict['menu'] = menu_name_list[i]
+        out_dict['price_score'] = value_score_list[i]
+        out_dict['taste_score'] = food_score_list[i] 
+        out_dict['service_score'] = service_score_list[i] 
+        out_dict['ambience_score'] = ambience_score_list[i]
+        out_dict['avg_score'] = round((value_score_list[i] + food_score_list[i] + service_score_list[i] + ambience_score_list[i])/4 , 4)
+        out_list.append(out_dict)
+    out_json = json.dumps(out_list)
+    return(out_json)
 
 ######################################################################################
 # 리퀘스트 id 로 파라미터 보내기
@@ -110,5 +201,7 @@ def index(request):
             result = json.dumps(out_list)
 
     elif request.GET["id"] == "nlp2" :
-        result = "{}"
+        test_str = request.GET["menu_list"]
+        test_list = test_str.split(',')
+        result = API2_function(test_list)
     return HttpResponse(result)
