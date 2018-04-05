@@ -98,7 +98,7 @@ def index(request):
             out_dict['frequency'] = dic_frequency[i]
             out_list.append(out_dict)
 
-        result = json.dumps(out_list);
+        result = json.dumps(out_list)
     elif request.GET["id"] == "nlp2" :
-        result = "";
+        result = ""
     return HttpResponse(result)
