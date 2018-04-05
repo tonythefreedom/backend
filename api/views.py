@@ -8,8 +8,14 @@ import json
 
 test_str = 'burgerking'
 test_str = test_str.lower()
-MODEL_PATH = "/Users/tonykim/model/gensim_model_skip_gram"
-TABLE_PATH = "/Users/tonykim/model/word_count_table.json"
+
+#local path
+#MODEL_PATH = "/Users/mac/model/gensim_model_skip_gram"
+#TABLE_PATH = "/Users/mac/model/word_count_table.json"
+
+#Server path
+MODEL_PATH = "/usr/local/etc/django/model/gensim_model_skip_gram"
+TABLE_PATH = "/usr/local/etc/django/model/word_count_table.json"
 
 model = Word2Vec.load(MODEL_PATH)     #yelp review skip_gram으로 돌린 모델#
 with open(TABLE_PATH) as f:
