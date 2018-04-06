@@ -19,14 +19,14 @@ test_str = test_str.lower()
 #MODEL_PATH = "/Users/mac/model/gensim_model_skip_gram"
 #TABLE_PATH = "/Users/mac/model/word_count_table.json"
 
-#MODEL_PATH = "/Users/kyubum/PycharmProjects/simility/kb_test/model/gensim_model_skip_gram"
-#TABLE_PATH = "/Users/kyubum/PycharmProjects/simility/kb_test/word_count_table.json"
-#WM_PATH = "/Users/kyubum/PycharmProjects/simility/kb_test/weight_df.csv"
+MODEL_PATH = "/Users/kyubum/PycharmProjects/simility/kb_test/model/gensim_model_skip_gram"
+TABLE_PATH = "/Users/kyubum/PycharmProjects/simility/kb_test/word_count_table.json"
+WM_PATH = "/Users/kyubum/PycharmProjects/simility/kb_test/weight_df.csv"
 
 #Server path
-MODEL_PATH = "/usr/local/etc/django/model/gensim_model_skip_gram"
-TABLE_PATH = "/usr/local/etc/django/model/word_count_table.json"
-WM_PATH = "/usr/local/etc/django/model/weight_df.csv"
+#MODEL_PATH = "/usr/local/etc/django/model/gensim_model_skip_gram"
+#TABLE_PATH = "/usr/local/etc/django/model/word_count_table.json"
+#WM_PATH = "/usr/local/etc/django/model/weight_df.csv"
 
 
 
@@ -173,13 +173,12 @@ def API2_function(input_list):
         out_dict['ambience_score'] = ambience_score_list[i]
         out_dict['avg_score'] = round((value_score_list[i] + food_score_list[i] + service_score_list[i] + ambience_score_list[i])/4 , 4)
         out_list.append(out_dict)
-    out_json = json.dumps(out_list)
-    return(out_json)
+    #out_json = json.dumps(out_list)
+    return(out_list)
 
 ######################################################################################
 # 리퀘스트 id 로 파라미터 보내기
 ######################################################################################
-
 result = "{}"
 def index(request):
     if request.GET["id"] == "nlp1" :
@@ -195,7 +194,13 @@ def index(request):
                     out_dict['name'] = dic_name[i]
                     out_dict['frequency'] = dic_frequency[i]
                     out_list.append(out_dict)
-                result = json.dumps(out_list)
+
+                sort_on = 'frequency'
+                out_list2 = [(dict_[sort_on], dict_) for dict_ in out_list]
+                out_list2.sort(reverse = True)
+                out_list3 = [dict_ for (key, dict_) in out_list2]
+                out_list4 = out_list3[0:6]    
+                result = json.dumps(out_list4)
         except KeyError :
             out_list = ['No Result']
             result = json.dumps(out_list)
@@ -203,5 +208,11 @@ def index(request):
     elif request.GET["id"] == "nlp2" :
         test_str = request.GET["menu_list"]
         test_list = test_str.split(',')
-        result = API2_function(test_list)
+        out_list = API2_function(test_list)
+        sort_by = 'avg_score' 
+        out_list2 = [(dict_[sort_by], dict_) for dict_ in out_list]
+        out_list2.sort(reverse = True)
+        out_list3 = [dict_ for (key, dict_) in out_list2]
+        out_list4 = out_list3[0:4]
+        result = json.dumps(out_list4)        
     return HttpResponse(result)
