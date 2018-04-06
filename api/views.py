@@ -19,14 +19,14 @@ test_str = test_str.lower()
 #MODEL_PATH = "/Users/mac/model/gensim_model_skip_gram"
 #TABLE_PATH = "/Users/mac/model/word_count_table.json"
 
-MODEL_PATH = "/Users/kyubum/PycharmProjects/simility/kb_test/model/gensim_model_skip_gram"
-TABLE_PATH = "/Users/kyubum/PycharmProjects/simility/kb_test/word_count_table.json"
-WM_PATH = "/Users/kyubum/PycharmProjects/simility/kb_test/weight_df.csv"
+#MODEL_PATH = "/Users/kyubum/PycharmProjects/simility/kb_test/model/gensim_model_skip_gram"
+#TABLE_PATH = "/Users/kyubum/PycharmProjects/simility/kb_test/word_count_table.json"
+#WM_PATH = "/Users/kyubum/PycharmProjects/simility/kb_test/weight_df.csv"
 
 #Server path
-#MODEL_PATH = "/usr/local/etc/django/model/gensim_model_skip_gram"
-#TABLE_PATH = "/usr/local/etc/django/model/word_count_table.json"
-#WM_PATH = "/usr/local/etc/django/model/weight_df.csv"
+MODEL_PATH = "/usr/local/etc/django/model/gensim_model_skip_gram"
+TABLE_PATH = "/usr/local/etc/django/model/word_count_table.json"
+WM_PATH = "/usr/local/etc/django/model/weight_df.csv"
 
 
 
