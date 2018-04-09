@@ -151,10 +151,10 @@ def API2_function(input_list):
     for i in range(len(menu_name_list)):
         out_dict = {}
         out_dict['menu'] = menu_name_list[i]
-        out_dict['price_score'] = value_score_list[i]
-        out_dict['taste_score'] = food_score_list[i] 
-        out_dict['service_score'] = service_score_list[i] 
-        out_dict['ambience_score'] = ambience_score_list[i]
+        out_dict['price_score'] = round(value_score_list[i],4)
+        out_dict['taste_score'] = round(food_score_list[i],4)
+        out_dict['service_score'] = round(service_score_list[i],4)
+        out_dict['ambience_score'] = round(ambience_score_list[i],4)
         out_dict['avg_score'] = round((value_score_list[i] + food_score_list[i] + service_score_list[i] + ambience_score_list[i])/4 , 4)
         out_list.append(out_dict)
     #out_json = json.dumps(out_list)
