@@ -8,6 +8,7 @@ import json
 import pandas
 from nltk.corpus import stopwords
 import csv
+from operator import itemgetter
 
 #######################################################################################################
 #   API1 Function
@@ -104,7 +105,7 @@ stop_words = set(stopwords.words('english'))
 weight_final_df = pandas.read_csv(WM_PATH, encoding = 'utf-8')
 weight_final_df.index = ['food','service','ambience','value']
 weight_final_df = weight_final_df.drop('Unnamed: 0',1)
-
+col_list = list(weight_final_df.columns.values)
 
 ##########################################################
 # return taste, price, value, ambience score function
@@ -117,51 +118,34 @@ def API2_function(input_list):
     value_score_list =[]
 
     for i in menu_name:
+        input_str_list = []
         test_str = i.lower()
-        try:
-            # create TDM(term-document matrix)
-            TDM_col_list = list(weight_final_df.columns.values)
-            TDM_df = pandas.DataFrame(columns = TDM_col_list)
-            TDM_df.loc[0] = 0 * len(TDM_col_list)
+        test_str = test_str.replace(".","")
+        test_str = test_str.replace("!","")
+        input_str_list = test_str.split(' ')
 
-            input_str = test_str
-            input_str = input_str.lower()
-            input_str = input_str.replace(".","")
-            input_str = input_str.replace("!","")
-            input_str_list = input_str.split(' ')
+        for j in input_str_list:
+            food_score_list_tem = []
+            service_score_list_tem = []
+            ambience_score_list_tem = []
+            value_score_list_tem = []
 
-            for i in input_str_list:
-                if not i in stop_words:
-                    try:
-                        TDM_df[str(i)][0] = 1
-                    except KeyError:
-                        continue
-                else:
-                    continue
-            TDM_df = TDM_df.T
+            if j in col_list:
+                food_score_list_tem.append(weight_final_df[j][0])
+                service_score_list_tem.append(weight_final_df[j][1])
+                ambience_score_list_tem.append(weight_final_df[j][2])
+                value_score_list_tem.append(weight_final_df[j][3])
+            else:
+                food_score_list_tem.append(0)
+                service_score_list_tem.append(0)
+                ambience_score_list_tem.append(0)
+                value_score_list_tem.append(0)
 
+        food_score_list.append(sum(food_score_list_tem))
+        service_score_list.append(sum(service_score_list_tem))
+        ambience_score_list.append(sum(ambience_score_list_tem))
+        value_score_list.append(sum(value_score_list_tem))
 
-            # 가중치 행렬, TDM 내적하기.(weight_matrix * TDM_df)
-            score = weight_final_df.dot(TDM_df)
-            score_list = []
-            score_list.append(('food',float(score[0][0])))
-            score_list.append(('service',float(score[0][1])))
-            score_list.append(('ambience',float(score[0][2])))
-            score_list.append(('value',float(score[0][3])))
-
-            food_score_list.append(round(score_list[0][1], 4))
-            service_score_list.append(round(score_list[1][1],4)) 
-            ambience_score_list.append(round(score_list[2][1],4))
-            value_score_list.append(round(score_list[3][1],4))
-
-        except KeyError:
-            food_score_list.append(0)
-            service_score_list.append(0) 
-            ambience_score_list.append(0)
-            value_score_list.append(0) 
-            continue
-
-        
     menu_name_list = menu_name
     out_list = []
     for i in range(len(menu_name_list)):
@@ -183,6 +167,7 @@ result = "{}"
 def index(request):
     if request.GET["id"] == "nlp1" :
         test_str = request.GET["keyword"]
+        test_str = test_str.lower()
         out_list = []
         try :
             if return_similar_word_list(test_str) != []:
@@ -209,10 +194,15 @@ def index(request):
         test_str = request.GET["menu_list"]
         test_list = test_str.split(',')
         out_list = API2_function(test_list)
-        sort_by = 'avg_score' 
-        out_list2 = [(dict_[sort_by], dict_) for dict_ in out_list]
-        out_list2.sort(reverse = True)
-        out_list3 = [dict_ for (key, dict_) in out_list2]
-        out_list4 = out_list3[0:4]
-        result = json.dumps(out_list4)        
+        out_before_sort = sorted(out_list, key=itemgetter('avg_score'))
+        if len(out_before_sort) > 3:
+            out_list_sorting = [out_before_sort[-1], out_before_sort[-2], out_before_sort[-3], out_before_sort[-4]]
+        elif len(out_before_sort) == 3:
+            out_list_sorting = [out_before_sort[-1], out_before_sort[-2], out_before_sort[-3]]
+        elif len(out_before_sort) == 2:
+            out_list_sorting = [out_before_sort[-1], out_before_sort[-2]]
+        else:
+            out_list_sorting = [out_before_sort[-1]]
+        
+        result = json.dumps(out_list_sorting)        
     return HttpResponse(result)
