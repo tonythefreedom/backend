@@ -1,0 +1,7 @@
+runtime: python 3.6
+api_version : 1
+threadsafe : true
+
+handler:
+- url: /
+  script: backend.app

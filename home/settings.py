@@ -28,9 +28,13 @@ DEBUG = True
 ALLOWED_HOSTS = [
     '35.227.93.162',
     'localhost',
+    'flamingodata-api-server.c.datamingo.internal',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
+SESSION_COOKIE_SECURE = False
+SECURE_SSL_REDIRECT = False
+CSRF_COOKIE_SECURE = False
 
 # Application definition
 
@@ -41,7 +45,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders'
+    'corsheaders',
+    'sslserver',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
